@@ -69,6 +69,13 @@ def get_chrome_driver(driver_arguments):
     setattr(chrome_options, "headless", True)
     driver = uc.Chrome(version_main=chrome_version, options=chrome_options) # pylint: disable=no-member
 
+    driver.execute_cdp_cmd(
+        "Network.setUserAgentOverride",
+        {
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        },
+    )
+
     driver.execute_cdp_cmd('Network.setBlockedURLs',
         {"urls": ["https://api.geetest.com/get.*"]})
     driver.execute_cdp_cmd('Network.enable', {})
