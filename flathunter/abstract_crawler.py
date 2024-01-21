@@ -88,7 +88,7 @@ class Crawler(ABC):
                     self.resolve_recaptcha(
                         driver, checkbox, afterlogin_string or "")
 
-            return BeautifulSoup(driver.page_source, 'html.parser')
+            return BeautifulSoup(driver.page_source, 'lxml')
 
         resp = requests.get(url, headers=self.HEADERS, timeout=30)
         if resp.status_code not in (200, 405):
@@ -98,7 +98,7 @@ class Crawler(ABC):
             logger.error("Got response (%i): %s\n%s",
                          resp.status_code, resp.content, user_agent)
 
-        return BeautifulSoup(resp.content, 'html.parser')
+        return BeautifulSoup(resp.content, 'lxml')
 
     def get_soup_with_proxy(self, url) -> BeautifulSoup:
         """Will try proxies until it's possible to crawl and return a soup"""
@@ -139,7 +139,7 @@ class Crawler(ABC):
             raise ProxyException(
                 "An error occurred while fetching proxies or content")
 
-        return BeautifulSoup(resp.content, 'html.parser')
+        return BeautifulSoup(resp.content, 'lxml')
 
     def extract_data(self, soup):
         """Should be implemented in subclass"""
