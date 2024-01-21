@@ -76,7 +76,7 @@ class Crawler(ABC):
             try:
                 WebDriverWait(driver, 5).until(
                     lambda d: re.search(
-                        r'(initGeetest|g-recaptcha)', driver.page_source)
+                        r'(initGeetest|class="g-recaptcha")', driver.page_source)
                 )
             except TimeoutException:
                 logger.info(
@@ -84,7 +84,7 @@ class Crawler(ABC):
             else:
                 if re.search("initGeetest", driver.page_source):
                     self.resolve_geetest(driver)
-                elif re.search("g-recaptcha", driver.page_source):
+                elif re.search('class="g-recaptcha"', driver.page_source):
                     self.resolve_recaptcha(
                         driver, checkbox, afterlogin_string or "")
 
