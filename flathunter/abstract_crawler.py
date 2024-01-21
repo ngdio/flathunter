@@ -68,11 +68,26 @@ class Crawler(ABC):
             return self.get_soup_with_proxy(url)
         if driver is not None:
             driver.get(url)
-            if re.search("initGeetest", driver.page_source):
-                self.resolve_geetest(driver)
-            elif re.search("g-recaptcha", driver.page_source):
-                self.resolve_recaptcha(
-                    driver, checkbox, afterlogin_string or "")
+            
+            # Sometimes captchas are loaded dynamically through JS,
+            # a few seconds of waiting time is required for them to load
+            # TODO: only require waiting time/captcha detection for
+            # the services which require it (Immoscout, Kleinanzeigen)
+            try:
+                WebDriverWait(driver, 5).until(
+                    lambda d: re.search(
+                        r'(initGeetest|class="g-recaptcha")', driver.page_source)
+                )
+            except TimeoutException:
+                logger.info(
+                    "No captcha found after five seconds, likely not required")
+            else:
+                if re.search("initGeetest", driver.page_source):
+                    self.resolve_geetest(driver)
+                elif re.search('class="g-recaptcha"', driver.page_source):
+                    self.resolve_recaptcha(
+                        driver, checkbox, afterlogin_string or "")
+
             return BeautifulSoup(driver.page_source, 'html.parser')
 
         resp = requests.get(url, headers=self.HEADERS, timeout=30)
