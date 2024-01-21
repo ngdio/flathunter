@@ -233,5 +233,5 @@ class WgGesucht(Crawler):
             elif re.search("g-recaptcha", driver.page_source):
                 self.resolve_recaptcha(
                     driver, checkbox, afterlogin_string or "")
-            return BeautifulSoup(driver.page_source, 'html.parser')
-        return BeautifulSoup(resp.content, 'html.parser')
+            return BeautifulSoup(driver.page_source, 'lxml')
+        return BeautifulSoup(resp.content, 'lxml')
