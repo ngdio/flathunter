@@ -1,6 +1,8 @@
 """Functions and classes related to sending Telegram messages"""
+import html
 import json
 import time
+import urllib.parse
 from typing import List, Dict, Optional
 
 import requests
@@ -25,6 +27,8 @@ class SenderTelegram(Processor, Notifier):
         self.__text_message_url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
         self.__media_group_url = f"https://api.telegram.org/bot{self.bot_token}/sendMediaGroup"
 
+        self.__gmaps_url = "https://www.google.com/maps/search/?api=1&query="
+
         if receivers is None:
             self.receiver_ids = self.config.telegram_receiver_ids()
         else:
@@ -36,13 +40,15 @@ class SenderTelegram(Processor, Notifier):
             receivers=self.receiver_ids,
             message=self.__get_text_message(expose),
             images=self.__get_images(expose),
+            url=expose.get('url'),
         )
         return expose
 
     def __broadcast(self,
                     receivers: List[int],
                     message: str,
-                    images: Optional[List[str]] = None) -> None:
+                    images: Optional[List[str]] = None,
+                    url: str = None) -> None:
         """
         Broadcast given message to the given receiver ids
         :param receivers: list of user/group ids
@@ -51,7 +57,7 @@ class SenderTelegram(Processor, Notifier):
         :return: None
         """
         for receiver in receivers:
-            msg = self.__send_text(receiver, message)
+            msg = self.__send_text(receiver, message, url)
             if not msg:
                 continue
 
@@ -66,7 +72,7 @@ class SenderTelegram(Processor, Notifier):
         """
         self.__broadcast(self.receiver_ids, message, None)
 
-    def __send_text(self, chat_id: int, message: str) -> Dict:
+    def __send_text(self, chat_id: int, message: str, url: str = None) -> Dict:
         """
         Send bot text message, the message may contain a simple
         heartbeat message or an apartment information
@@ -78,12 +84,20 @@ class SenderTelegram(Processor, Notifier):
         payload = {
             'chat_id': str(chat_id),
             'text': message,
+            'parse_mode': 'HTML',
         }
+        # Force link preview to show the expose instead of potential GMaps link
+        # Immoscout does not seem to support link previews, this is out of our control
+        if url:
+            payload['link_preview_options'] = {
+                'url': url,
+            }
+        
         logger.debug(('token:', self.bot_token))
         logger.debug(('chat_id:', chat_id))
         logger.debug(('text:', message))
         logger.debug("Retrieving URL %s, payload %s", self.__text_message_url, payload)
-        response = requests.request("POST", self.__text_message_url, data=payload, timeout=30)
+        response = requests.request("POST", self.__text_message_url, json=payload, timeout=30)
         logger.debug("Got response (%i): %s", response.status_code, response.content)
 
         # handle error
@@ -158,6 +172,14 @@ class SenderTelegram(Processor, Notifier):
 
     def __get_images(self, expose: Dict) -> List[str]:
         return expose.get("images", [])
+    
+    def __get_address_link(self, expose: Dict) -> str:
+        address = expose.get('address', '')
+        if not address:
+            return 'N/A'
+        address_quoted = urllib.parse.quote(address)
+        address_escaped = html.escape(address)
+        return f'<a href="{self.__gmaps_url}{address_quoted}">{address_escaped}</a>'
 
     def __get_text_message(self, expose: Dict) -> str:
         """
@@ -168,11 +190,12 @@ class SenderTelegram(Processor, Notifier):
 
         return self.config.message_format().format(
             crawler=expose.get('crawler', 'N/A'),
-            title=expose.get('title', 'N/A'),
+            title=html.escape(expose.get('title', 'N/A')),
             rooms=expose.get('rooms', 'N/A'),
             size=expose.get('size', 'N/A'),
             price=expose.get('price', 'N/A'),
             url=expose.get('url', 'N/A'),
             address=expose.get('address', 'N/A'),
+            linked_address=self.__get_address_link(expose),
             durations=expose.get('durations', 'N/A')
         ).strip()
