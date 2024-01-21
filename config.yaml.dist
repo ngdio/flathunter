@@ -87,6 +87,7 @@ filters:
 
 # Multiline message (yes, the | is supposed to be there), 
 # to format the message received from the Telegram bot. 
+# Basic HTML tags can be used for links and styling.
 # 
 # Available placeholders:
 # 	- {title}: The title of the expose
@@ -94,6 +95,8 @@ filters:
 #	- {price}: Price for the flat
 # 	- {durations}: Durations calculated by GMaps, see above
 #	- {url}: URL to the expose
+#   - {address}: Address of the expose
+#   - {linked_address}: Address with link to GMaps (does not require API)
 message: |
     {title}
     Zimmer: {rooms}
