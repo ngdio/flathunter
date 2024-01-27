@@ -31,7 +31,7 @@ class WgGesuchtCrawlerTest(unittest.TestCase):
 
     def test_filter_spotahome_ads(self):
         with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "fixtures", "wg-gesucht-spotahome.html")) as fixture:
-            soup = BeautifulSoup(fixture, 'lxml')
+            soup = BeautifulSoup(fixture, 'html5lib')
         entries = self.crawler.extract_data(soup)
         assert len(entries) == 20
 
