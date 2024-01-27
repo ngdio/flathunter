@@ -149,7 +149,7 @@ def parse_expose_element_to_details(row: Tag, crawler: str) -> Optional[Dict]:
 
 def liste_attribute_filter(element: Union[Tag, str]) -> bool:
     """Return true for elements whose 'id' attribute starts with 'liste-' 
-    and are not contained in the random results container 'premium_user_extra_list'"""
+    and are not contained in the 'premium_user_extra_list' container"""
     if not isinstance(element, Tag):
         return False
     if not element.attrs or "id" not in element.attrs:
