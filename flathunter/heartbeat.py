@@ -4,10 +4,7 @@ from typing import Optional
 from flathunter.abstract_notifier import Notifier
 from flathunter.config import YamlConfig
 from flathunter.logging import logger
-from flathunter.sender_apprise import SenderApprise
-from flathunter.sender_mattermost import SenderMattermost
-from flathunter.sender_slack import SenderSlack
-from flathunter.sender_telegram import SenderTelegram
+from flathunter.notifiers import SenderApprise, SenderMattermost, SenderTelegram, SenderSlack
 from flathunter.exceptions import HeartbeatException
 
 

@@ -2,7 +2,7 @@ import unittest
 
 import requests_mock
 
-from flathunter.sender_apprise import SenderApprise
+from flathunter.notifiers import SenderApprise
 
 
 class SenderAppriseTest(unittest.TestCase):
