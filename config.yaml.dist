@@ -80,7 +80,7 @@ filters:
 
 # Multiline message (yes, the | is supposed to be there), 
 # to format the message received from Telegram or Apprise.
-# Basic HTML tags can be used for links and styling.
+# For Telegram, basic HTML tags can be used to add links and styling.
 # 
 # Available placeholders:
 #   - {crawler}: The name of the crawler
