@@ -40,7 +40,7 @@ class SenderTelegram(Processor, Notifier):
             receivers=self.receiver_ids,
             message=self.__get_text_message(expose),
             images=self.__get_images(expose),
-            url=expose.get('url'),
+            url=expose.get('url', ''),
         )
         return expose
 
@@ -48,7 +48,7 @@ class SenderTelegram(Processor, Notifier):
                     receivers: List[int],
                     message: str,
                     images: Optional[List[str]] = None,
-                    url: str = None) -> None:
+                    url: str = '') -> None:
         """
         Broadcast given message to the given receiver ids
         :param receivers: list of user/group ids
@@ -72,7 +72,7 @@ class SenderTelegram(Processor, Notifier):
         """
         self.__broadcast(self.receiver_ids, message, None)
 
-    def __send_text(self, chat_id: int, message: str, url: str = None) -> Dict:
+    def __send_text(self, chat_id: int, message: str, url: str = '') -> Dict:
         """
         Send bot text message, the message may contain a simple
         heartbeat message or an apartment information
@@ -85,6 +85,7 @@ class SenderTelegram(Processor, Notifier):
             'chat_id': str(chat_id),
             'text': message,
             'parse_mode': 'HTML',
+            'link_preview_options': {}
         }
         # Force link preview to show the expose instead of potential GMaps link
         # Immoscout does not seem to support link previews, this is out of our control
