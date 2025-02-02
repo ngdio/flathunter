@@ -93,7 +93,7 @@ class SenderTelegram(Processor, Notifier):
             payload['link_preview_options'] = {
                 'url': url,
             }
-        
+
         logger.debug(('token:', self.bot_token))
         logger.debug(('chat_id:', chat_id))
         logger.debug(('text:', message))
@@ -173,7 +173,7 @@ class SenderTelegram(Processor, Notifier):
 
     def __get_images(self, expose: Dict) -> List[str]:
         return expose.get("images", [])
-    
+
     def __get_address_link(self, expose: Dict) -> str:
         address = expose.get('address', '')
         if not address:
