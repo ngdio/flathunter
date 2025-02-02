@@ -4,6 +4,7 @@ from typing import Dict
 from time import sleep
 import backoff
 import requests
+from twocaptcha import TwoCaptcha
 
 from flathunter.logging import logger
 from flathunter.captcha.captcha_solver import (
@@ -29,8 +30,8 @@ class TwoCaptchaSolver(CaptchaSolver):
             "challenge": challenge,
             "pageurl": page_url
         }
-        captcha_id = self.__submit_2captcha_request(params)
-        untyped_result = json.loads(self.__retrieve_2captcha_result(captcha_id))
+        captcha_id = self.__submit_2captcha_v1_request(params)
+        untyped_result = json.loads(self.__retrieve_2captcha_v1_result(captcha_id))
         return GeetestResponse(untyped_result["geetest_challenge"],
                                untyped_result["geetest_validate"],
                                untyped_result["geetest_seccode"])
@@ -44,8 +45,8 @@ class TwoCaptchaSolver(CaptchaSolver):
             "googlekey": google_site_key,
             "pageurl": page_url
         }
-        captcha_id = self.__submit_2captcha_request(params)
-        return RecaptchaResponse(self.__retrieve_2captcha_result(captcha_id))
+        captcha_id = self.__submit_2captcha_v1_request(params)
+        return RecaptchaResponse(self.__retrieve_2captcha_v1_result(captcha_id))
 
     def solve_awswaf(
         self,
@@ -56,11 +57,21 @@ class TwoCaptchaSolver(CaptchaSolver):
         captcha_script: str,
         page_url: str
     ) -> AwsAwfResponse:
-        """Should be implemented at some point"""
-        raise NotImplementedError("AWS WAF captchas not supported for 2Captcha")
+        """Solves Amazon AWS WAF captcha"""
+        logger.info("Trying to solve Amazon AWS WAF using 2Captcha")
+
+        api = TwoCaptcha(self.api_key, defaultTimeout=240)
+
+        result = api.amazon_waf(
+            sitekey=sitekey,
+            iv=iv,
+            context=context,
+            url=page_url,
+            captchaScript=captcha_script)
+        breakpoint()
 
     @backoff.on_exception(**CaptchaSolver.backoff_options)
-    def __submit_2captcha_request(self, params: Dict[str, str]) -> str:
+    def __submit_2captcha_v1_request(self, params: Dict[str, str]) -> str:
         submit_url = "http://2captcha.com/in.php"
         submit_response = requests.post(submit_url, params=params, timeout=30)
         logger.info("Got response from 2captcha/in: %s", submit_response.text)
@@ -72,7 +83,7 @@ class TwoCaptchaSolver(CaptchaSolver):
 
 
     @backoff.on_exception(**CaptchaSolver.backoff_options)
-    def __retrieve_2captcha_result(self, captcha_id: str):
+    def __retrieve_2captcha_v1_result(self, captcha_id: str):
         retrieve_url = "http://2captcha.com/res.php"
         params = {
             "key": self.api_key,
@@ -101,3 +112,15 @@ class TwoCaptchaSolver(CaptchaSolver):
                 raise requests.HTTPError(response=retrieve_response)
 
             return retrieve_response.text.split("|", 1)[1]
+        
+    
+    @backoff.on_exception(**CaptchaSolver.backoff_options)
+    def __submit_2captcha_v2_request(self, params: Dict[str, str]) -> str:
+        submit_url = "http://2captcha.com/in.php"
+        submit_response = requests.post(submit_url, params=params, timeout=30)
+        logger.info("Got response from 2captcha/in: %s", submit_response.text)
+
+        if not submit_response.text.startswith("OK"):
+            raise requests.HTTPError(response=submit_response)
+
+        return submit_response.text.split("|")[1]

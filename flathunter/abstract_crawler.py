@@ -232,6 +232,10 @@ class Crawler(ABC):
 
         sitekey = re.findall(
             r"apiKey: \"(.*?)\"", driver.page_source)[0]
+        
+        logger.debug('Site key: %s', sitekey)
+        logger.debug('Context: %s', context)
+        logger.debug('iv: %s', iv)
 
         challenge = None
         challenge_matches = re.findall(r'src="([^"]*challenge\.js)"', driver.page_source)
